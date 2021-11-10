@@ -1,6 +1,6 @@
 # softwarestore-server
 
-基于关联规则的软件下载平台
+基于关联规则的软件下载平台-后端
 
 ## WebUI
 
