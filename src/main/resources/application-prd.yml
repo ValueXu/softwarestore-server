@@ -21,4 +21,4 @@ server:
   port: 8080
 
 swagger-config:
-  enabled: true
+  enabled: false

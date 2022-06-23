@@ -3,8 +3,11 @@ package cn.jxufe.valuexu.softwarestoreserver.associationRuleMining;
 import cn.jxufe.valuexu.softwarestoreserver.dao.AssociationRuleRepository;
 import cn.jxufe.valuexu.softwarestoreserver.dao.RecordRepository;
 import cn.jxufe.valuexu.softwarestoreserver.dao.UserRepository;
+import cn.jxufe.valuexu.softwarestoreserver.domain.AssociationRule;
 import cn.jxufe.valuexu.softwarestoreserver.domain.Record;
 import cn.jxufe.valuexu.softwarestoreserver.domain.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -16,6 +19,8 @@ import java.util.List;
 
 @Component
 public class AssociationRuleMining {
+
+    private static Logger logger = LoggerFactory.getLogger(AssociationRuleMining.class);
     public static int times = 0;//迭代次数
     private static double MIN_SUPPORT = 0.02;//最小支持度百分比
     private static double MIN_CONFIDENCE = 0.6;//最小置信度
@@ -58,13 +63,13 @@ public class AssociationRuleMining {
         /*************读取数据集**************/
         record = getRecord();
         //控制台输出记录
-        System.out.println("读取数据集record成功===================================");
+        logger.info("读取数据集record成功===================================");
         ShowData(record);
 
 
         Apriori();//调用Apriori算法获得频繁项集
-        System.out.println("频繁模式挖掘完毕。\n\n\n\n\n进行关联度挖掘，最小支持度百分比为：" + MIN_SUPPORT + " 最小置信度为：" + MIN_CONFIDENCE);
-
+        logger.info("频繁模式挖掘完毕。");
+        logger.info("进行关联度挖掘，最小支持度百分比为：" + MIN_SUPPORT + " 最小置信度为：" + MIN_CONFIDENCE);
 
         AssociationRulesMining();//挖掘关联规则
     }
@@ -89,7 +94,7 @@ public class AssociationRuleMining {
                 }
             }
         } catch (Exception e) {
-            System.out.println("读取数据库数据出错" + e.getMessage());
+            logger.info("读取数据库数据出错" + e.getMessage());
             e.printStackTrace();
         }
         return record;
@@ -98,13 +103,13 @@ public class AssociationRuleMining {
     //实现apriori算法
     public static void Apriori() {
         //************获取候选1项集**************
-        System.out.println("第一次扫描后的1级 备选集firstCandidate");
+        logger.info("第一次扫描后的1级 备选集firstCandidate");
         List<List<String>> firstCandidate = findFirstCandidate();
         ShowData(firstCandidate);
 
 
         //************获取频繁1项集***************
-        System.out.println("第一次扫描后的1级 频繁集frequentItems");
+        logger.info("第一次扫描后的1级 频繁集frequentItems");
         List<List<String>> frequentItems = getSupportedItems(firstCandidate);
         AddToFrequenceItem(frequentItems);//添加到所有的频繁项集中
         //控制台输出1项频繁集
@@ -115,7 +120,7 @@ public class AssociationRuleMining {
         times = 2;
         while (endTag != true) {
 
-            System.out.println("*******************************第" + times + "次扫描后备选集");
+            logger.info("*******************************第" + times + "次扫描后备选集");
             //**********连接操作****获取候选times项集**************
             List<List<String>> nextCandidateItems = getNextCandidate(frequentItems);
             //输出所有的候选项集
@@ -123,7 +128,7 @@ public class AssociationRuleMining {
 
 
             /**************计数操作***由候选k项集选择出频繁k项集****************/
-            System.out.println("*******************************第" + times + "次扫描后频繁集");
+            logger.info("*******************************第" + times + "次扫描后频繁集");
             List<List<String>> nextFrequentItemset = getSupportedItems(nextCandidateItems);
             AddToFrequenceItem(nextFrequentItemset);//添加到所有的频繁项集中
             //输出所有的频繁项集
@@ -132,7 +137,7 @@ public class AssociationRuleMining {
 
             //*********如果循环结束，输出最大模式**************
             if (endTag == true) {
-                System.out.println("\n\n\nApriori算法--->最大频繁集==================================");
+                logger.info("Apriori算法--->最大频繁集==================================");
                 ShowData(frequentItems);
             }
             //****************下一次循环初值********************
@@ -153,7 +158,7 @@ public class AssociationRuleMining {
                     List<String> s2 = gets2set(tem, s1);
                     double conf = isAssociationRules(s1, s2, tem);
                     if (conf > 0)
-                        System.out.println("置信度为：" + conf);
+                        logger.info("置信度为：" + conf);
                 }
             }
 
@@ -165,9 +170,8 @@ public class AssociationRuleMining {
         for (int i = 0; i < candidateItemset.size(); i++) {
             List<String> list = new ArrayList<String>(candidateItemset.get(i));
             for (int j = 0; j < list.size(); j++) {
-                System.out.print(list.get(j) + " ");
+                logger.info(list.get(j) + " ");
             }
-            System.out.println();
         }
     }
 
@@ -212,7 +216,7 @@ public class AssociationRuleMining {
         }
         endTag = end;//存在频繁项集则不会结束
         if (endTag == true)
-            System.out.println("*****************无满足支持度的" + times + "项集,结束连接");
+            logger.info("*****************无满足支持度的" + times + "项集,结束连接");
         return supportedItems;
     }
 
@@ -262,7 +266,32 @@ public class AssociationRuleMining {
             confidence = countTem * 1.0 / counts1;
 
             if (confidence >= MIN_CONFIDENCE) {
-                System.out.print("关联规则：" + s1.toString() + "=>>" + s2.toString() + " ");
+                logger.info("关联规则：" + s1.toString() + "=>>" + s2.toString() + " ");
+                // 存入数据库中
+                if (s1.size() == 1) {
+                    AssociationRule associationRule = new AssociationRule();
+                    associationRule.setSoftwareId0(Long.parseLong(s1.get(0)));
+                    for (int i = 0; i < s2.size(); i++) {
+                        Long currentId = Long.parseLong(s2.get(i));
+                        switch (i) {
+                            case 0:
+                                associationRule.setSoftwareId1(currentId);
+                                break;
+                            case 1:
+                                associationRule.setSoftwareId2(currentId);
+                                break;
+                            case 2:
+                                associationRule.setSoftwareId3(currentId);
+                                break;
+                            case 3:
+                                associationRule.setSoftwareId4(currentId);
+                                break;
+                        }
+                    }
+                    associationRule.setConfidence(MIN_CONFIDENCE);
+                    associationRule.setSupport(MIN_SUPPORT);
+                    current.associationRuleRepository.saveAndFlush(associationRule);
+                }
                 return confidence;
             } else
                 return 0;
@@ -348,7 +377,6 @@ public class AssociationRuleMining {
                 return false;
         return true;
     }
-
 
 
     /**

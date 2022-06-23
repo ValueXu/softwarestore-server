@@ -34,7 +34,7 @@ public class User implements Serializable {
     @Column(name = "type")
     private int type;
 
-    @Column(name = "email")
+    @Column(name = "email",nullable = false)
     private String email;
 
     @CreationTimestamp

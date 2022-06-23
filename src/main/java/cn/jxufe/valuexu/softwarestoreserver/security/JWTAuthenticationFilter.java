@@ -77,37 +77,37 @@ public class JWTAuthenticationFilter extends BasicAuthenticationFilter {
             content.setMsg("Token过期");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write(JSON.toJSONString(content));
-            logger.error("Token已过期: {} " + e);
+            logger.error("Token已过期: {} ", e);
         } catch (UnsupportedJwtException e) {
             content.setCode(-3);
             content.setMsg("Token格式错误");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write(JSON.toJSONString(content));
-            logger.error("Token格式错误: {} " + e);
+            logger.error("Token格式错误: {} ", e);
         } catch (MalformedJwtException e) {
             content.setCode(-4);
             content.setMsg("Token格式错误");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write(JSON.toJSONString(content));
-            logger.error("Token没有被正确构造: {} " + e);
+            logger.error("Token没有被正确构造: {} ", e);
         } catch (SignatureException e) {
             content.setCode(-5);
             content.setMsg("Token签名错误");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write(JSON.toJSONString(content));
-            logger.error("签名失败: {} " + e);
+            logger.error("签名失败: {} ", e);
         } catch (IllegalArgumentException e) {
             content.setCode(-6);
             content.setMsg("Token非法参数异常");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write(JSON.toJSONString(content));
-            logger.error("非法参数异常: {} " + e);
+            logger.error("非法参数异常: {} ", e);
         } catch (Exception e) {
             content.setCode(-9);
             content.setMsg("Invalid Token");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write(JSON.toJSONString(content));
-            logger.error("Invalid Token " + e.getMessage());
+            logger.error("Invalid Token ", e);
         }
     }
 
