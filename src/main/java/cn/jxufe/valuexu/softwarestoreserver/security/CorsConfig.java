@@ -1,4 +1,5 @@
 package cn.jxufe.valuexu.softwarestoreserver.security;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -7,7 +8,7 @@ import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 public class CorsConfig {
-    private CorsConfiguration getCorsConfig(){
+    private CorsConfiguration getCorsConfig() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.addAllowedOrigin("*");
         corsConfiguration.addAllowedHeader("*");
@@ -18,8 +19,9 @@ public class CorsConfig {
 //        corsConfiguration.setAllowCredentials(true);
         return corsConfiguration;
     }
+
     @Bean
-    public CorsFilter corsFilter(){
+    public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", getCorsConfig());
         return new CorsFilter(source);

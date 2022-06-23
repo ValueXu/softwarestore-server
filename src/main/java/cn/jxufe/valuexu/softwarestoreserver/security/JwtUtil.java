@@ -31,7 +31,7 @@ public class JwtUtil {
      * @param:
      * @return:
      */
-    public static String generateToken(String username,int type) {
+    public static String generateToken(String username, int type) {
         Calendar calendar = Calendar.getInstance();
         // 设置签发时间
         Date now = calendar.getTime();
@@ -45,7 +45,7 @@ public class JwtUtil {
         //可以把任何数据放进map中，不只用户名
         HashMap<String, Object> map = new HashMap<>();
         map.put("username", username);
-        map.put("type",type);
+        map.put("type", type);
 
         String jwt = Jwts.builder()
                 .setHeaderParam("type", "JWT")
@@ -64,7 +64,7 @@ public class JwtUtil {
     /**
      * 功能描述: 解密Token
      */
-    public static HashMap<String,Object> validateToken(String token) {
+    public static HashMap<String, Object> validateToken(String token) {
         try {
             // parse the token.
             Map<String, Object> body = Jwts.parser()
@@ -72,10 +72,10 @@ public class JwtUtil {
                     .parseClaimsJws(token.replace(TOKEN_PREFIX, ""))
                     .getBody();
             String username = body.get("username").toString();
-            int type=Integer.parseInt(body.get("type").toString());
-            HashMap<String,Object> map=new HashMap<>();
-            map.put("username",username);
-            map.put("type",type);
+            int type = Integer.parseInt(body.get("type").toString());
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("username", username);
+            map.put("type", type);
             return map;
         } catch (ExpiredJwtException e) {
             throw e;

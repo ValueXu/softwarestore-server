@@ -21,7 +21,7 @@ public class Success implements AuthenticationSuccessHandler {
 
         ResponseBodyContent<String> content = new ResponseBodyContent<>();
         //生成JWT并放置到响应体中
-        String jwt=JwtUtil.generateToken("username",1);
+        String jwt = JwtUtil.generateToken("username", 1);
         content.setResult(jwt);
 
         response.setContentType("application/json;charset:UTF-8");

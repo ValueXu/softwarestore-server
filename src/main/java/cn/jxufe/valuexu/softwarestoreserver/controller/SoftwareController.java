@@ -105,11 +105,11 @@ public class SoftwareController {
         ResponseBodyContent<List> content = new ResponseBodyContent<List>();
         try {
             List<Software> list = new ArrayList<Software>();
-            List<Long> softwareIds = associationRuleRepository.findAllBySoftwareId0(id);
+            List<Long> softwareIds = associationRuleRepository.findAllBySoftwareId0OrSoftwareId1OrSoftwareId2OrSoftwareId3OrSoftwareId4(id, id, id, id, id);
             List<Optional> softwareList = new ArrayList<>();
             int length = softwareIds.size();
             for (int i = 0; i < length; i++) {
-                Optional<Software> current = softwareRepository.findById((long) softwareIds.indexOf(i));
+                Optional<Software> current = softwareRepository.findById(softwareIds.get(i));
                 softwareList.add(current);
             }
             content.setResult(softwareList);
@@ -123,13 +123,7 @@ public class SoftwareController {
 
     @PostMapping("/uploadSoftware")
     @ResponseBody
-    public ResponseBodyContent<HashMap> uploadSoftware(@RequestParam(name = "name") String name,
-                                                       @RequestParam(name = "author") String author,
-                                                       @RequestParam(name = "description") String description,
-                                                       @RequestParam(name = "type") int type,
-                                                       @RequestParam(name = "download_url") String downloadUrl,
-                                                       @RequestParam(name = "imgUrl", defaultValue = "/assets/software_imgs/0.png") String imgUrl
-    ) {
+    public ResponseBodyContent<HashMap> uploadSoftware(@RequestParam(name = "name") String name, @RequestParam(name = "author") String author, @RequestParam(name = "description") String description, @RequestParam(name = "type") int type, @RequestParam(name = "download_url") String downloadUrl, @RequestParam(name = "imgUrl", defaultValue = "/assets/software_imgs/0.png") String imgUrl) {
         ResponseBodyContent<HashMap> content = new ResponseBodyContent<HashMap>();
         int code = 1;
         String msg = "success";
@@ -155,14 +149,7 @@ public class SoftwareController {
 
     @PostMapping("/updateSoftware")
     @ResponseBody
-    public ResponseBodyContent<HashMap> updateSoftware(@RequestParam(name = "id") long id,
-                                                       @RequestParam(name = "name") String name,
-                                                       @RequestParam(name = "author") String author,
-                                                       @RequestParam(name = "description") String description,
-                                                       @RequestParam(name = "type") int type,
-                                                       @RequestParam(name = "download_url") String downloadUrl,
-                                                       @RequestParam(name = "img_url", defaultValue = "/assets/software_imgs/0.png") String imgUrl
-    ) {
+    public ResponseBodyContent<HashMap> updateSoftware(@RequestParam(name = "id") long id, @RequestParam(name = "name") String name, @RequestParam(name = "author") String author, @RequestParam(name = "description") String description, @RequestParam(name = "type") int type, @RequestParam(name = "download_url") String downloadUrl, @RequestParam(name = "img_url", defaultValue = "/assets/software_imgs/0.png") String imgUrl) {
         ResponseBodyContent<HashMap> content = new ResponseBodyContent<HashMap>();
         try {
             Optional<Software> softwareFromSQL = softwareRepository.findById(id);
@@ -204,5 +191,4 @@ public class SoftwareController {
 
         return content;
     }
-
 }

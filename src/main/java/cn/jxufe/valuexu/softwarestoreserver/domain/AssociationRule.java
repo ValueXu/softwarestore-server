@@ -13,8 +13,6 @@ public class AssociationRule {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue
-    private long id;
     @Column(name = "software_id0")
     private long softwareId0;
     @Column(name = "software_id1")
@@ -26,17 +24,18 @@ public class AssociationRule {
     @Column(name = "software_id4")
     private long softwareId4;
     @Column(name = "support")
-    private int support;
+    private double support;
     @Column(name = "confidence")
-    private int confidence;
+    private double confidence;
 
-    public AssociationRule(long id, long softwareId0, long softwareId1, long softwareId2, long softwareId3, long softwareId4) {
-        this.id = id;
+    public AssociationRule( long softwareId0, long softwareId1, long softwareId2, long softwareId3, long softwareId4, int support, int confidence) {
         this.softwareId0 = softwareId0;
         this.softwareId1 = softwareId1;
         this.softwareId2 = softwareId2;
         this.softwareId3 = softwareId3;
         this.softwareId4 = softwareId4;
+        this.support = support;
+        this.confidence = confidence;
     }
 
     public AssociationRule() {
@@ -45,14 +44,6 @@ public class AssociationRule {
 
     public static long getSerialVersionUID() {
         return serialVersionUID;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     public long getSoftwareId0() {
@@ -93,5 +84,21 @@ public class AssociationRule {
 
     public void setSoftwareId4(long softwareId4) {
         this.softwareId4 = softwareId4;
+    }
+
+    public double getSupport() {
+        return support;
+    }
+
+    public void setSupport(double support) {
+        this.support = support;
+    }
+
+    public double getConfidence() {
+        return confidence;
+    }
+
+    public void setConfidence(double confidence) {
+        this.confidence = confidence;
     }
 }
