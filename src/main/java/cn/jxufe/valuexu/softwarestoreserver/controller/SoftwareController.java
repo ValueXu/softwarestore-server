@@ -1,15 +1,14 @@
 package cn.jxufe.valuexu.softwarestoreserver.controller;
 
-
 import cn.jxufe.valuexu.softwarestoreserver.dao.AssociationRuleRepository;
 import cn.jxufe.valuexu.softwarestoreserver.dao.SoftwareRepository;
 import cn.jxufe.valuexu.softwarestoreserver.dao.UserRepository;
 import cn.jxufe.valuexu.softwarestoreserver.domain.Software;
 import cn.jxufe.valuexu.softwarestoreserver.domain.User;
-import cn.jxufe.valuexu.softwarestoreserver.response.ResponseBodyContent;
+import cn.jxufe.valuexu.softwarestoreserver.dto.WrappedResDto;
+import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,12 +25,10 @@ public class SoftwareController {
     private AssociationRuleRepository associationRuleRepository;
 
     @RequestMapping("/getAllSoftware")
-    @ResponseBody
-    public ResponseBodyContent<List> findAll() {
-        ResponseBodyContent<List> content = new ResponseBodyContent<List>();
+    public WrappedResDto<List> findAll() {
+        WrappedResDto<List> content = new WrappedResDto<>();
         try {
-            List<Software> list = new ArrayList<Software>();
-            list = softwareRepository.findAll();
+            List<Software> list = softwareRepository.findAll();
             content.setResult(list);
         } catch (Exception e) {
             content.setCode(-1);
@@ -41,12 +38,11 @@ public class SoftwareController {
     }
 
     @RequestMapping("/getById")
-    @ResponseBody
-    public ResponseBodyContent<Software> getById(long id) {
-        ResponseBodyContent<Software> content = new ResponseBodyContent<Software>();
+    public WrappedResDto<Software> getById(long id) {
+        WrappedResDto<Software> content = new WrappedResDto<>();
         try {
             Optional<Software> software = softwareRepository.findById(id);
-            content.setResult(software.get());
+            software.ifPresent(content::setResult);
         } catch (Exception e) {
             content.setCode(-1);
             content.setMsg(e.getMessage());
@@ -55,12 +51,10 @@ public class SoftwareController {
     }
 
     @RequestMapping("/getByName")
-    @ResponseBody
-    public ResponseBodyContent<List> getByName(String name) {
-        ResponseBodyContent<List> content = new ResponseBodyContent<List>();
+    public WrappedResDto<List> getByName(String name) {
+        WrappedResDto<List> content = new WrappedResDto<>();
         try {
-            List<Software> list = new ArrayList<Software>();
-            list = softwareRepository.findAllByName(name);
+            List<Software> list = softwareRepository.findAllByName(name);
             content.setResult(list);
         } catch (Exception e) {
             content.setCode(-1);
@@ -70,12 +64,10 @@ public class SoftwareController {
     }
 
     @RequestMapping("/getAllByType")
-    @ResponseBody
-    public ResponseBodyContent<List> getAllByType(int type) {
-        ResponseBodyContent<List> content = new ResponseBodyContent<List>();
+    public WrappedResDto<List> getAllByType(int type) {
+        WrappedResDto<List> content = new WrappedResDto<>();
         try {
-            List<Software> list = new ArrayList<Software>();
-            list = softwareRepository.findAllByType(type);
+            List<Software> list = softwareRepository.findAllByType(type);
             content.setResult(list);
         } catch (Exception e) {
             content.setCode(-1);
@@ -85,12 +77,10 @@ public class SoftwareController {
     }
 
     @RequestMapping("/getAllByAuthor")
-    @ResponseBody
-    public ResponseBodyContent<List> getByAuthor(@RequestParam(name = "username") String author) {
-        ResponseBodyContent<List> content = new ResponseBodyContent<List>();
+    public WrappedResDto<List> getByAuthor(@RequestParam(name = "username") String author) {
+        WrappedResDto<List> content = new WrappedResDto<>();
         try {
-            List<Software> list = new ArrayList<Software>();
-            list = softwareRepository.findAllByAuthor(author);
+            List<Software> list = softwareRepository.findAllByAuthor(author);
             content.setResult(list);
         } catch (Exception e) {
             content.setCode(-1);
@@ -100,16 +90,14 @@ public class SoftwareController {
     }
 
     @RequestMapping("/getAssociationRulesById")
-    @ResponseBody
-    public ResponseBodyContent<List> getAssociationRulesById(long id) {
-        ResponseBodyContent<List> content = new ResponseBodyContent<List>();
+    public WrappedResDto<List> getAssociationRulesById(long id) {
+        WrappedResDto<List> content = new WrappedResDto<>();
         try {
-            List<Software> list = new ArrayList<Software>();
-            List<Long> softwareIds = associationRuleRepository.findAllBySoftwareId0OrSoftwareId1OrSoftwareId2OrSoftwareId3OrSoftwareId4(id, id, id, id, id);
-            List<Optional> softwareList = new ArrayList<>();
-            int length = softwareIds.size();
-            for (int i = 0; i < length; i++) {
-                Optional<Software> current = softwareRepository.findById(softwareIds.get(i));
+            List<Long> softwareIds = associationRuleRepository
+                    .findAllBySoftwareId0OrSoftwareId1OrSoftwareId2OrSoftwareId3OrSoftwareId4(id, id, id, id, id);
+            List<Optional<Software>> softwareList = new ArrayList<>();
+            for (Long softwareId : softwareIds) {
+                Optional<Software> current = softwareRepository.findById(softwareId);
                 softwareList.add(current);
             }
             content.setResult(softwareList);
@@ -122,18 +110,22 @@ public class SoftwareController {
     }
 
     @PostMapping("/uploadSoftware")
-    @ResponseBody
-    public ResponseBodyContent<HashMap> uploadSoftware(@RequestParam(name = "name") String name, @RequestParam(name = "author") String author, @RequestParam(name = "description") String description, @RequestParam(name = "type") int type, @RequestParam(name = "download_url") String downloadUrl, @RequestParam(name = "imgUrl", defaultValue = "/assets/software_imgs/0.png") String imgUrl) {
-        ResponseBodyContent<HashMap> content = new ResponseBodyContent<HashMap>();
+    public WrappedResDto<HashMap> uploadSoftware(@RequestParam(name = "name") String name,
+                                                 @RequestParam(name = "author") String author,
+                                                 @RequestParam(name = "description") String description,
+                                                 @RequestParam(name = "type") int type,
+                                                 @RequestParam(name = "download_url") String downloadUrl,
+                                                 @RequestParam(name = "imgUrl", defaultValue = "/assets/software_imgs/0.png") String imgUrl) {
+        WrappedResDto<HashMap> content = new WrappedResDto<>();
         int code = 1;
         String msg = "success";
         try {
             List<Software> softwareFromSQL = softwareRepository.findAllByName(name);
-            if (softwareFromSQL.size() != 0) {
+            if (!softwareFromSQL.isEmpty()) {
                 throw new Exception("已存在相同名称的软件，请更换软件名");
             }
             Optional<User> user = userRepository.findByUsername(author);
-            if (!user.isPresent()) {
+            if (user.isEmpty()) {
                 throw new Exception("当前开发者未注册，请先注册开发者");
             }
             Software software = new Software(name, author, description, type, imgUrl, downloadUrl);
@@ -148,17 +140,22 @@ public class SoftwareController {
     }
 
     @PostMapping("/updateSoftware")
-    @ResponseBody
-    public ResponseBodyContent<HashMap> updateSoftware(@RequestParam(name = "id") long id, @RequestParam(name = "name") String name, @RequestParam(name = "author") String author, @RequestParam(name = "description") String description, @RequestParam(name = "type") int type, @RequestParam(name = "download_url") String downloadUrl, @RequestParam(name = "img_url", defaultValue = "/assets/software_imgs/0.png") String imgUrl) {
-        ResponseBodyContent<HashMap> content = new ResponseBodyContent<HashMap>();
+    public WrappedResDto<HashMap> updateSoftware(@RequestParam(name = "id") long id,
+                                                 @RequestParam(name = "name") String name,
+                                                 @RequestParam(name = "author") String author,
+                                                 @RequestParam(name = "description") String description,
+                                                 @RequestParam(name = "type") int type,
+                                                 @RequestParam(name = "download_url") String downloadUrl,
+                                                 @RequestParam(name = "img_url", defaultValue = "/assets/software_imgs/0.png") String imgUrl) {
+        WrappedResDto<HashMap> content = new WrappedResDto<>();
         try {
             Optional<Software> softwareFromSQL = softwareRepository.findById(id);
 
-            if (!softwareFromSQL.isPresent()) {
+            if (softwareFromSQL.isEmpty()) {
                 throw new Exception("该软件未注册，请先上传");
             }
             Optional<User> user = userRepository.findByUsername(author);
-            if (!user.isPresent()) {
+            if (user.isEmpty()) {
                 throw new Exception("当前开发者未注册，请先注册开发者");
             }
             Software software = softwareFromSQL.get();
@@ -177,11 +174,9 @@ public class SoftwareController {
         return content;
     }
 
-
-    @RequestMapping("/deleteSoftware")
-    @ResponseBody
-    ResponseBodyContent<HashMap> deleteSoftware(@RequestParam(name = "software_id") long softwareId) {
-        ResponseBodyContent<HashMap> content = new ResponseBodyContent<>();
+    @PostMapping("/deleteSoftware")
+    WrappedResDto<HashMap> deleteSoftware(@RequestParam(name = "software_id") long softwareId) {
+        WrappedResDto<HashMap> content = new WrappedResDto<>();
         try {
             softwareRepository.deleteById(softwareId);
         } catch (Exception e) {

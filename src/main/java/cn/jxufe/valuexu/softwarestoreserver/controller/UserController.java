@@ -2,11 +2,11 @@ package cn.jxufe.valuexu.softwarestoreserver.controller;
 
 import cn.jxufe.valuexu.softwarestoreserver.dao.UserRepository;
 import cn.jxufe.valuexu.softwarestoreserver.domain.User;
-import cn.jxufe.valuexu.softwarestoreserver.response.ResponseBodyContent;
-import cn.jxufe.valuexu.softwarestoreserver.security.JwtUtil;
+import cn.jxufe.valuexu.softwarestoreserver.dto.WrappedResDto;
+import cn.jxufe.valuexu.softwarestoreserver.utils.JwtUtil;
+import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,14 +21,11 @@ public class UserController {
     private UserRepository userRepository;
 
     @PostMapping("/signIn")
-    @ResponseBody
-    public ResponseBodyContent<HashMap> signIn(@RequestParam(name = "username") String username, @RequestParam(name = "password") String password) {
+    public WrappedResDto<HashMap> signIn(@RequestParam(name = "username") String username, @RequestParam(name = "password") String password) {
         Optional<User> user = userRepository.findByUsername(username);
         HashMap<String, Object> map = new HashMap<>();
-        ResponseBodyContent<HashMap> content = new ResponseBodyContent<HashMap>();
+        WrappedResDto<HashMap> content = new WrappedResDto<>();
         if (user.isPresent() && user.get().getPassword().equals(password)) {
-            content.setCode(0);
-            content.setMsg("success");
             HashMap<String, Object> userInfo = new HashMap<>();
             User info = user.get();
             userInfo.put("username", info.getUsername());
@@ -49,15 +46,14 @@ public class UserController {
     }
 
     @PostMapping("/signUp")
-    @ResponseBody
-    public ResponseBodyContent<HashMap> signUp(@RequestParam(name = "username") String username,
-                                               @RequestParam(name = "password") String password,
-                                               @RequestParam(name = "name") String name,
-                                               @RequestParam(name = "email") String email,
-                                               @RequestParam(name = "type") int type) {
-        ResponseBodyContent<HashMap> content = new ResponseBodyContent<HashMap>();
+    public WrappedResDto<HashMap> signUp(@RequestParam(name = "username") String username,
+                                         @RequestParam(name = "password") String password,
+                                         @RequestParam(name = "name") String name,
+                                         @RequestParam(name = "email") String email,
+                                         @RequestParam(name = "type") int type) {
+        WrappedResDto<HashMap> content = new WrappedResDto<>();
         try {
-            if ((int) type != 3 && (int) type != 4) {
+            if (type != 3 && type != 4) {
                 throw new Exception("用户类型错误");
             }
             Optional<User> userFromSQL = userRepository.findByUsername(username);
@@ -74,7 +70,6 @@ public class UserController {
             user.setName(name);
             user.setEmail(email);
             user.setType(type);
-            ;
             user.setCreateTime(timestamp);
             user.setUpdateTime(timestamp);
             userRepository.save(user);
@@ -86,13 +81,12 @@ public class UserController {
     }
 
     @PostMapping("/update")
-    @ResponseBody
-    public ResponseBodyContent<HashMap> update(@RequestParam(name = "username") String username,
-                                               @RequestParam(name = "password") String password,
-                                               @RequestParam(name = "name") String name,
-                                               @RequestParam(name = "email") String email,
-                                               @RequestParam(name = "type") int type) {
-        ResponseBodyContent<HashMap> content = new ResponseBodyContent<HashMap>();
+    public WrappedResDto<HashMap> update(@RequestParam(name = "username") String username,
+                                         @RequestParam(name = "password") String password,
+                                         @RequestParam(name = "name") String name,
+                                         @RequestParam(name = "email") String email,
+                                         @RequestParam(name = "type") int type) {
+        WrappedResDto<HashMap> content = new WrappedResDto<>();
         try {
             if (type == 0 || type == 3) {
                 throw new Exception("选择的用户类型错误");
@@ -120,9 +114,8 @@ public class UserController {
     }
 
     @RequestMapping("/getAll")
-    @ResponseBody
-    public ResponseBodyContent<List> getAll() {
-        ResponseBodyContent<List> content = new ResponseBodyContent<>();
+    public WrappedResDto<List> getAll() {
+        WrappedResDto<List> content = new WrappedResDto<>();
         try {
             List<User> userList = userRepository.findAll();
             content.setResult(userList);
@@ -134,13 +127,11 @@ public class UserController {
     }
 
     @PostMapping("/delete")
-    @ResponseBody
-    public ResponseBodyContent<HashMap> delete(@RequestParam(name = "username") String username
-    ) {
-        ResponseBodyContent<HashMap> content = new ResponseBodyContent<>();
+    public WrappedResDto<HashMap> delete(@RequestParam(name = "username") String username) {
+        WrappedResDto<HashMap> content = new WrappedResDto<>();
         try {
             Optional<User> userFromSQL = userRepository.findByUsername(username);
-            if (!userFromSQL.isPresent()) {
+            if (userFromSQL.isEmpty()) {
                 throw new Exception("用户不存在");
             }
             userRepository.delete(userFromSQL.get());

@@ -1,9 +1,9 @@
 package cn.jxufe.valuexu.softwarestoreserver.domain;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
-import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity

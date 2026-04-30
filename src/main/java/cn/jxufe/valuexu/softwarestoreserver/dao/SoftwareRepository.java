@@ -1,8 +1,7 @@
 package cn.jxufe.valuexu.softwarestoreserver.dao;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import cn.jxufe.valuexu.softwarestoreserver.domain.Software;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;

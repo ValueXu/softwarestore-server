@@ -1,12 +1,11 @@
 package cn.jxufe.valuexu.softwarestoreserver.domain;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.data.annotation.CreatedDate;
 
-import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.Date;
 
 @Entity
 @Table(name = "record")
