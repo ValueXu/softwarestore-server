@@ -1,9 +1,9 @@
 package cn.jxufe.valuexu.softwarestoreserver.domain;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
-import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
@@ -24,7 +24,6 @@ public class Scores implements Serializable {
     private String comment;
 
     public Scores(String username, long softwareId, long score, String comment) {
-        this.id = id;
         this.username = username;
         this.softwareId = softwareId;
         this.score = score;

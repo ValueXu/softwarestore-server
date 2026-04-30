@@ -10,7 +10,7 @@ spring:
       hibernate:
         hbm2ddl:
           auto: update
-        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+        # dialect: org.hibernate.dialect.MySQLDialect
         formate_sql:  true
     open-in-view: false
   security:
@@ -19,6 +19,3 @@ spring:
       password: 000000
 server:
   port: 8080
-
-swagger-config:
-  enabled: false

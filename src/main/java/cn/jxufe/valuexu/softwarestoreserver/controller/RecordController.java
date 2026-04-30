@@ -1,84 +1,80 @@
 package cn.jxufe.valuexu.softwarestoreserver.controller;
 
+import cn.jxufe.valuexu.softwarestoreserver.config.ResCodeEnum;
 import cn.jxufe.valuexu.softwarestoreserver.dao.RecordRepository;
 import cn.jxufe.valuexu.softwarestoreserver.dao.SoftwareRepository;
 import cn.jxufe.valuexu.softwarestoreserver.dao.UserRepository;
 import cn.jxufe.valuexu.softwarestoreserver.domain.Record;
 import cn.jxufe.valuexu.softwarestoreserver.domain.Software;
 import cn.jxufe.valuexu.softwarestoreserver.domain.User;
-import cn.jxufe.valuexu.softwarestoreserver.response.ResponseBodyContent;
+import cn.jxufe.valuexu.softwarestoreserver.dto.WrappedResDto;
+import jakarta.annotation.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.*;
 
 @RestController
 @RequestMapping("record")
 public class RecordController {
-    @Resource
-    private RecordRepository recordRepository;
-    @Resource
-    private SoftwareRepository softwareRepository;
-    @Resource
-    private UserRepository userRepository;
+    private static final Logger logger = LoggerFactory.getLogger(RecordController.class);
 
-    @RequestMapping("/getAll")
-    @ResponseBody
-    public ResponseBodyContent<List> getAll() {
-        ResponseBodyContent<List> content = new ResponseBodyContent<>();
-        try {
-            List<Record> records = recordRepository.findAll();
-            content.setResult(records);
-        } catch (Exception e) {
-            content.setCode(-1);
-            content.setMsg(e.getMessage());
-        }
-        return content;
+    private final RecordRepository recordRepository;
+    private final SoftwareRepository softwareRepository;
+    private final UserRepository userRepository;
+
+    public RecordController(RecordRepository recordRepository, SoftwareRepository softwareRepository, UserRepository userRepository) {
+        this.recordRepository = recordRepository;
+        this.softwareRepository = softwareRepository;
+        this.userRepository = userRepository;
     }
 
-    @RequestMapping("/getAllByUsername")
-    @ResponseBody
-    public ResponseBodyContent<List> getAllByUsername(
+    @GetMapping("/getAll")
+    public WrappedResDto<List<Record>> getAll() {
+        try {
+            List<Record> records = recordRepository.findAll();
+            return WrappedResDto.success(records);
+        } catch (Exception e) {
+            logger.error("get all record error", e);
+            return WrappedResDto.failed(ResCodeEnum.UNKNOWN_ERR);
+        }
+    }
+
+    @GetMapping("/getAllByUsername")
+    public WrappedResDto<List> getAllByUsername(
             @RequestParam(name = "username") String username
     ) {
-        ResponseBodyContent<List> content = new ResponseBodyContent<>();
         try {
             List<Record> records = recordRepository.findAllByUserName(username);
             List<HashMap> list = new ArrayList<>();
-            for (int i = 0; i < records.size(); i++) {
-                Record record = records.get(i);
+            for (Record record : records) {
                 HashMap<String, Object> map = new HashMap<>();
                 map.put("id", record.getId());
                 map.put("username", record.getUserName());
                 map.put("software_id", record.getSoftwareId());
                 map.put("time", record.getTime());
                 Optional<Software> softwareFromSQL = softwareRepository.findById(record.getSoftwareId());
-                if (softwareFromSQL.isPresent()) {
-                    map.put("name", softwareFromSQL.get().getName());
-                }
+                softwareFromSQL.ifPresent(software -> map.put("name", software.getName()));
                 list.add(map);
             }
-            content.setResult(list);
+            return WrappedResDto.success(list);
         } catch (Exception e) {
-            content.setCode(-1);
-            content.setMsg(e.getMessage());
+            return WrappedResDto.failed(ResCodeEnum.UNKNOWN_ERR);
         }
-        return content;
     }
 
     @PostMapping("/add")
-    @ResponseBody
-    public ResponseBodyContent<HashMap> addRecord(@RequestParam(name = "software_id") long softwareId,
-                                                  @RequestParam(name = "username") String username) {
-        ResponseBodyContent<HashMap> content = new ResponseBodyContent<>();
+    public WrappedResDto<String> addRecord(@RequestParam(name = "software_id") long softwareId,
+                                            @RequestParam(name = "username") String username) {
         try {
             Optional<Software> softwareFromSQL = softwareRepository.findById(softwareId);
-            if (!softwareFromSQL.isPresent()) {
+            if (softwareFromSQL.isEmpty()) {
                 throw new Exception("软件不存在");
             }
             Optional<User> userFromSQL = userRepository.findByUsername(username);
-            if (!userFromSQL.isPresent()) {
+            if (userFromSQL.isEmpty()) {
                 throw new Exception("用户名不存在");
             }
             Date date = new Date();
@@ -87,24 +83,20 @@ public class RecordController {
             record.setUserName(username);
             record.setTime(new Timestamp(date.getTime()));
             recordRepository.save(record);
+            return WrappedResDto.success();
         } catch (Exception e) {
-            content.setCode(-1);
-            content.setMsg(e.getMessage());
+            return WrappedResDto.failed(ResCodeEnum.UNKNOWN_ERR);
         }
-
-        return content;
     }
 
-    @RequestMapping("/delete")
-    @ResponseBody
-    public ResponseBodyContent<HashMap> deleteRecord(@RequestParam(name = "record_id") long recordId) {
-        ResponseBodyContent<HashMap> content = new ResponseBodyContent<>();
+    @DeleteMapping("/delete")
+    public WrappedResDto<String> deleteRecord(@RequestParam(name = "record_id") long recordId) {
         try {
             recordRepository.deleteById(recordId);
+            return WrappedResDto.success();
         } catch (Exception e) {
-            content.setCode(-1);
-            content.setMsg(e.getMessage());
+            logger.error("delete record error", e);
+            return WrappedResDto.failed(ResCodeEnum.UNKNOWN_ERR);
         }
-        return content;
     }
 }

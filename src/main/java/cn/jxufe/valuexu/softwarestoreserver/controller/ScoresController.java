@@ -6,10 +6,10 @@ import cn.jxufe.valuexu.softwarestoreserver.dao.UserRepository;
 import cn.jxufe.valuexu.softwarestoreserver.domain.Scores;
 import cn.jxufe.valuexu.softwarestoreserver.domain.Software;
 import cn.jxufe.valuexu.softwarestoreserver.domain.User;
-import cn.jxufe.valuexu.softwarestoreserver.response.ResponseBodyContent;
+import cn.jxufe.valuexu.softwarestoreserver.dto.WrappedResDto;
+import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,8 +31,7 @@ public class ScoresController {
         long softwareId = software.getId();
         List<Scores> scoresAllBySoftwareId = scoresRepository.findAllBySoftwareId(softwareId);
         double sum = 0;
-        for (int i = 0; i < scoresAllBySoftwareId.size(); i++) {
-            Scores item = scoresAllBySoftwareId.get(i);
+        for (Scores item : scoresAllBySoftwareId) {
             sum += item.getScore();
         }
         software.setScore(sum / scoresAllBySoftwareId.size());
@@ -40,14 +39,13 @@ public class ScoresController {
     }
 
     @PostMapping("/add")
-    @ResponseBody
-    public ResponseBodyContent<HashMap> addScores(
+    public WrappedResDto<HashMap> addScores(
             @RequestParam(name = "username") String username,
             @RequestParam(name = "software_id") long softwareId,
             @RequestParam(name = "score") int score,
-            @RequestParam(name = "comment") String comment
+            @RequestParam(name = "comment", required = false) String comment
     ) {
-        ResponseBodyContent<HashMap> content = new ResponseBodyContent<>();
+        WrappedResDto<HashMap> content = new WrappedResDto<>();
         try {
             Optional<Software> softwareFromSQL = softwareRepository.findById(softwareId);
             if (!softwareFromSQL.isPresent()) {
@@ -59,7 +57,7 @@ public class ScoresController {
             }
             Scores scores;
             List<Scores> scoresList = scoresRepository.findAllByUsernameAndSoftwareId(username, softwareId);
-            if (scoresList.size() != 0) {
+            if (!scoresList.isEmpty()) {
                 scores = scoresList.get(0);
                 scores.setScore(score);
                 scores.setComment(comment);
@@ -80,19 +78,18 @@ public class ScoresController {
 
     @RequestMapping("/delete")
     @ResponseBody
-    public ResponseBodyContent<HashMap> deleteScore(
+    public WrappedResDto<HashMap> deleteScore(
             @RequestParam(name = "software_id") long softwareId,
             @RequestParam(name = "username") String username
     ) {
-        ResponseBodyContent<HashMap> content = new ResponseBodyContent<>();
+        WrappedResDto<HashMap> content = new WrappedResDto<>();
         try {
             Optional<Software> softwareFromSQL = softwareRepository.findById(softwareId);
             List<Scores> scoresList = scoresRepository.findAllByUsernameAndSoftwareId(username, softwareId);
-            for (int i = 0; i < scoresList.size(); i++) {
-                Scores item = scoresList.get(i);
+            for (Scores item : scoresList) {
                 scoresRepository.delete(item);
             }
-            recomputeScores(softwareFromSQL.get());
+            softwareFromSQL.ifPresent(this::recomputeScores);
         } catch (Exception e) {
             content.setCode(-1);
             content.setMsg(e.getMessage());
@@ -101,9 +98,8 @@ public class ScoresController {
     }
 
     @RequestMapping("/getAllBySoftware")
-    @ResponseBody
-    public ResponseBodyContent<List> getAllByUsername(@RequestParam(name = "id") long softwareId) {
-        ResponseBodyContent<List> content = new ResponseBodyContent<>();
+    public WrappedResDto<List> getAllByUsername(@RequestParam(name = "id") long softwareId) {
+        WrappedResDto<List> content = new WrappedResDto<>();
         try {
             List<Scores> scoresList = scoresRepository.findAllBySoftwareId(softwareId);
             content.setResult(scoresList);
@@ -115,24 +111,20 @@ public class ScoresController {
     }
 
     @RequestMapping("/getAllByUsername")
-    @ResponseBody
-    public ResponseBodyContent<List> getAllByUsername(@RequestParam(name = "username") String username) {
-        ResponseBodyContent<List> content = new ResponseBodyContent<>();
+    public WrappedResDto<List> getAllByUsername(@RequestParam(name = "username") String username) {
+        WrappedResDto<List> content = new WrappedResDto<>();
         try {
             List<Scores> scoresList = scoresRepository.findAllByUsername(username);
             List<HashMap> list = new ArrayList<>();
 
-            for (int i = 0; i < scoresList.size(); i++) {
-                Scores scores = scoresList.get(i);
+            for (Scores scores : scoresList) {
                 HashMap<String, Object> map = new HashMap<>();
                 map.put("id", scores.getId());
                 map.put("comment", scores.getComment());
                 map.put("score", scores.getScore());
                 map.put("software_id", scores.getSoftwareId());
                 Optional<Software> softwareFromSQL = softwareRepository.findById(scores.getSoftwareId());
-                if (softwareFromSQL.isPresent()) {
-                    map.put("name", softwareFromSQL.get().getName());
-                }
+                softwareFromSQL.ifPresent(software -> map.put("name", software.getName()));
                 list.add(map);
             }
             content.setResult(list);
